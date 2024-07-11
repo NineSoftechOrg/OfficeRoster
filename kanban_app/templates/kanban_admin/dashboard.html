@@ -1,0 +1,103 @@
+{% extends 'kanban_admin/base.html' %}  <!-- Make sure this points to your custom base.html, not admin/base.html -->
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mt-3">Dashboard</h2>
+    {% if request.user.role == 'admin' or request.user.is_superuser %}
+    <a href="{% url 'users_submitted_timeseets' %}" class="btn btn-primary">View All Timesheets</a>
+    {% endif %}
+</div>
+<div class="my-3">
+{% if request.user.role == 'admin' or request.user.is_superuser %}
+<a href="{% url 'board_create' %}" class="btn btn-primary">Create New Project</a><br>
+{% endif %}
+
+</div>
+<!-- <div class="col-12-xs col-6-m p-7-l p-5-m p-4-xs"></div> -->
+<div class="row">
+    {% for board in boards %}
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title"><b>Project : {{ board.Project_name }}</b></h5>
+                <b class="card-text"> Team: </b>
+                    {% for user in board.assigned_users.all %}
+                        {{user.username}}
+                        {% if not forloop.last %},{% endif %}
+                    {% endfor %}<br>
+                <p class="card-text"><b>Created by:</b> {{ board.created_by.username }}</p>
+                <a href="{% url 'board_detail' board.pk %}" class="btn btn-info">Details</a>
+            {% if request.user.role == 'admin' or request.user.is_superuser %}
+                <a href="{% url 'board_update' board.pk %}" class="btn btn-secondary">Edit</a>
+                <a href="{% url 'board_delete' board.pk %}" class="btn btn-danger">Delete</a>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <br>
+    <h4>No Porject Created....</h4>
+    {% endfor %}
+</div>
+
+<div class="my-3">
+<h2>Users Dashboard</h2>
+{% if request.user.role == 'admin' or request.user.is_superuser %}
+<a href="{% url 'create_user' %}" class="btn btn-primary">Create New User</a><br><br>
+{% endif %}
+</div>
+<!-- <div class="col-12-xs col-6-m p-7-l p-5-m p-4-xs vVgcP"></div> -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Users List</h5> 
+        </div>
+        <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>User Id</th>
+                        <th>User Name</th>
+                        <th>Role</th>
+                        <th>Email Id</th>
+                        <th>Assigned Projects</th>
+                        <!-- <th>Assigned To</th> -->
+                        <!-- <th>Actions</th> -->
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for user in users %}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.role }}</td>
+                            <td>{{user.email }}</td>
+                            <td>
+                                <ul>
+                                    {% for project in all_projects %}
+                                    {%for key,value in project.items%}
+                                    {%if user.username in value%}
+                                    <li>{{key}}</li>
+                                    {%endif%}
+                                    
+                                    {%endfor%}
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <!-- <td>{{ user.boards }}</td> -->
+                            <!-- <td>{{ task.get_status_display }}</td> -->
+                            {% if request.user.role == 'admin' or request.user.is_superuser %}
+                             <td>
+                                <a href="{% url 'user_delete' user.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                             </td>
+                            {% endif %}
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4">No users found.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+        </div>
+
+    </div>
+{% endblock %}

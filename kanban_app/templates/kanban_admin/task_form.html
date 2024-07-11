@@ -1,0 +1,21 @@
+{% extends 'kanban_admin/base.html' %}
+{% load crispy_forms_filters %}
+{% block content %}
+<div class="mt-3">
+    <h2>Create Task</h2>
+    <form method="post" >
+        {% csrf_token %}
+        {{ form|crispy }}
+        <div>
+            <h6> {{task.order }}</h6>
+            <h6>{{ task.created_at.date }}</h6>
+        </div>
+        <button type="submit" class="btn btn-success">Save</button>
+        {% if task %}
+            <a href="{% url 'board_detail' task.board.id %}" class="btn btn-outline-secondary">Cancel</a>
+        {% else %}
+            <a href="{% url 'board_detail' board.id %}" class="btn btn-outline-secondary">Cancel</a>
+        {% endif %}
+    </form>
+</div>
+{% endblock %}

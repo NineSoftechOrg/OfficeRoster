@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ board.name }} - Project</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        .col-12 {
+            height: 200px;
+            position: relative;
+            width: 800px;
+          }
+          
+          .button {
+            margin: 0;
+            position: absolute;
+            top: 50%;
+            -ms-transform: translateY(-50%);
+            transform: translateY(-50%);
+          }
+        .kanban-board {
+            display: flex;
+            justify-content: space-between;
+        }
+        .kanban-column {
+            width: 23%;
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            min-height: 400px;
+        }
+        .kanban-card {
+            background: rgb(162, 214, 214);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            cursor: move;
+        }
+    </style>
+</head>
+<body>
+
+<div class="row d-flex justify-content-center align-items-center h-100">
+    <div class="card rounded-11">
+        <h3>client: {{ board }}</h3>
+        <form method="POST" class="row row-cols-lg-auto g-3 justify-content-center align-items-center ">
+            {% csrf_token %}
+            <div class="col-12">
+                <div class="form-outline">
+                    <input id="form1" class="form-control" name="task" placeholder="Enter a task here"/>
+                    <textarea name="description" placeholder="Task Description"></textarea>
+                    <div>
+                        <h6> {{task.order }}</h6>
+                        <h6>{{ task.created_at.date }}</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="button">
+                <button type="submit" class="btn btn-primary">Add Task</button>
+            </div>
+        </form>
+        <a href="{% url 'logout' %}" class="btn btn-primary" style="background: firebrick; color: white;">Logout</a>
+    </div>
+</div>
+<!-- <div class= "my-3">
+<div class=".kanban-board">
+    <h4>Tasks</h4>
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th>Task ID</th>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Assigned To</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for task in tasks %}
+            <tr>
+                <td>{{ task.order }}</td>
+                <td>{{ task.title }}</td>
+                <td>{{ task.get_status_display }}</td>
+                <td>{{ task.assigned_to.username|default:"None" }}</td>
+                <td>
+                    <a href=" 'update_task_status' task.id" class="btn btn-sm btn-secondary">Edit</a>
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="4">No tasks found.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+</div> -->
+    <!-- <a href="{% url 'task_create' board.pk %}" class="btn btn-primary">Add New Task</a> -->
+
+
+    <div class="container mt-4">
+        <div class="kanban-board">
+            {% for status in statuses %}
+          
+            <div class="kanban-column" id="{{ status }}">
+                <h3>{{ status|capfirst }}</h3>
+                <hr>
+                {% for task in tasks %}
+                    {% if task.status == status %}
+                    
+                    <div class="kanban-card" data-id="{{ task.id }}">
+                        <h4>{{ task.title }}</h4>
+                        <p>{{ task.description }}</p>
+                        
+                        <h6>Id: {{task.order }}</h6>
+                        <h6>{{ task.created_at }}</h6>     
+                    </div>
+                    {% endif %}
+                
+                {% endfor %}
+            </div>
+            {% empty %}
+            <br>
+            <h4>No Task assigned to You....</h4>
+            {% endfor %}
+        </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+<script>
+    // Function to get CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            let cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Setup AJAX with CSRF token
+    function setupAjaxCSRF() {
+        let csrftoken = getCookie('csrftoken');
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!/^http:.*/.test(settings.url) && !/^https:.*/.test(settings.url)) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+    }
+
+    // Initialize AJAX CSRF setup
+    setupAjaxCSRF();
+
+    $(function() {
+        $(".kanban-column").sortable({
+            connectWith: ".kanban-column",
+            update: function(event, ui) {
+                var taskId = ui.item.data('id');
+                var newStatus = ui.item.parent().attr('id');
+                $.ajax({
+                    url: '/kanban/update_task_status/',
+                    method: 'POST',
+                    data: {
+                        'task_id': taskId,
+                        'new_status': newStatus,
+                    },
+                    success: function(response) {
+                        console.log('Task status updated successfully.');
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error updating task status:', error);
+                    }
+                });
+            }
+        }).disableSelection();
+    });
+</script>
+    
+    
+</body>
+</html>

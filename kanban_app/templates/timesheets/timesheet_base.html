@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Daily Timesheet</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.css"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #calendar {
+            max-width: none;
+            height: 100vh;
+            padding: 0 10px;
+        }
+        .add-timesheet-icon {
+            color: #007bff;
+            z-index: 100;
+        }
+        .container-fluid {
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        .submit-all {
+            position: fixed;
+            right: 200px;
+            top: 50px;
+            z-index: 1050;
+        }
+    </style>
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid justify-content-center">
+            <span class="mb-0 h4"><strong>{{ user.username }}'s</strong> Daily Timesheets Calendar</span>
+        </div>
+    </nav>
+    <div id="statusMessage" class="alert alert-dismissible fade show" role="alert" style="display: none;">
+        <!-- Alert message will be dynamically inserted here -->
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div>
+        <a href="#" id="submit-all" class="btn btn-primary">Submit All Timesheets</a>
+    </div>
+    <!-- Main Content -->
+    <div class="container-fluid align-items-center justify-content-center">
+        <div class="row">
+            <div class="col-12 text-center">
+                <div id="calendar"></div>
+            </div>
+        </div>
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Timesheet Modal -->
+    <div class="modal fade" id="timesheetModal" tabindex="-1" aria-labelledby="timesheetModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="timesheetModalLabel">Fill Timesheet - <span id="modal-date-display"></span></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="timesheet-form" action="{% url 'add_timesheet' %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" id="timesheet_id" name="timesheet_id">
+                        <div class="form-group">
+                            <label for="title">Title</label>
+                            <textarea class="form-control" id="title" name="title"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="project_name">Project Name</label>
+                            <input type="text" class="form-control" id="project_name" name="project_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="start_time">Start Time</label>
+                            <input type="time" class="form-control" id="start_time" name="start_time">
+                        </div>
+                        <div class="form-group">
+                            <label for="end_time">End Time</label>
+                            <input type="time" class="form-control" id="end_time" name="end_time">
+                        </div>
+                        <!-- Hidden input for selected date -->
+                        <div class="form-group">
+                            <input type="hidden" id="selected_date" name="selected_date">
+                            <button type="submit" class="btn btn-success">Save Timesheet</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Details Modal -->
+    <div class="modal fade" id="eventDetailsModal" tabindex="-1" aria-labelledby="eventDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="eventDetailsModalLabel">Filled Timesheet Details - <span id="detail-date-display"></span></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Title:</strong> <span id="detail-title"></span></p>
+                    <p><strong>Project Name:</strong> <span id="detail-project-name"></span></p>
+                    <p><strong>Start Time:</strong> <span id="detail-start-time"></span></p>
+                    <p><strong>End Time:</strong> <span id="detail-end-time"></span></p>
+                    <!-- <p><strong>Created Date:</strong> <span></span></p> -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="delete-button">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // Handle Submit All Timesheets button click
+            $('#submit-all').click(function (e) {
+                e.preventDefault();
+                if (confirm("Are you sure you want to submit all your timesheets for this month?")) {
+                    var currentDate = $('#calendar').fullCalendar('getDate');
+                    var year = currentDate.year();
+                    var month = currentDate.month() + 1; // FullCalendar uses 0-based month indexing
+        
+                    $.ajax({
+                        type: "POST",
+                        url: "{% url 'submit_timesheets' %}",
+                        data: {
+                            'csrfmiddlewaretoken': '{{ csrf_token }}',
+                            'year': year,
+                            'month': month
+                        },
+                        dataType: "json",
+                        success: function (response) {
+                            if (response.success) {
+                                alert(response.message);
+                                disableMonth(year, month);
+                            } else {
+                                alert(response.message);
+                            }
+                        },
+                        error: function () {
+                            alert("An error occurred while submitting timesheets.");
+                        }
+                    });
+                }
+            });
+        
+            // Function to disable a specific month
+            function disableMonth(year, month) {
+                // Iterate over all days in the calendar
+                $('.fc-day').each(function () {
+                    var cellDate = $(this).data('date');
+                    var cellMoment = moment(cellDate, 'YYYY-MM-DD');
+                    if (cellMoment.year() === year && cellMoment.month() + 1 === month) {
+                        $(this).find('.add-timesheet-icon').hide(); // Hide add icon for the submitted month
+                        $(this).addClass('read-only'); // Optionally add a class to indicate read-only status
+                    }
+                });
+            }
+        
+            // Function to check the submission status for a given month
+            function checkSubmissionStatus(year, month, callback) {
+                $.getJSON("{% url 'check_submission_status' %}", { year: year, month: month }, function (data) {
+                    if (typeof callback === "function") {
+                        callback(data.submitted);
+                    }
+                });
+            }
+        
+            // Initialize FullCalendar
+            var calendar = $('#calendar').fullCalendar({
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'month,agendaWeek,agendaDay'
+                },
+               
+                selectable: true,
+                selectHelper: true,
+                editable: false,
+                eventSources: [
+                    {
+                        url: '/all_timesheets/',
+                        method: 'GET',
+                        failure: function () {
+                            alert('There was an error while fetching timesheets.');
+                        },
+                        success: function (data) {
+                            var currentDate = $('#calendar').fullCalendar('getDate');
+                            var currentYear = currentDate.year();
+                            var currentMonth = currentDate.month() + 1;
+        
+                            // Filter events to only those in the currently viewed month
+                            var filteredEvents = data.filter(function (event) {
+                                var eventDate = moment(event.start);
+                                return eventDate.year() === currentYear && eventDate.month() + 1 === currentMonth;
+                            });
+        
+                            var statusMessage = getStatusMessage(filteredEvents);
+        
+                            // Display status message if there is one
+                            if (statusMessage) {
+                                showStatusMessage(statusMessage);
+                            } else {
+                                hideStatusMessage();
+                            }
+                        }
+                    }
+                ],
+                eventClick: function (calEvent) {
+                    $('#detail-title').text(calEvent.title);
+                    $('#detail-project-name').text(calEvent.project_name);
+                    $('#detail-start-time').text(moment(calEvent.start).format('HH:mm'));
+                    $('#detail-end-time').text(moment(calEvent.end).format('HH:mm'));
+                    $('#detail-date-display').text(moment(calEvent.date).format('YYYY-MM-DD'));
+                    $('#eventDetailsModal').modal('show');
+        
+                    checkSubmissionStatus(moment(calEvent.start).year(), moment(calEvent.start).month() + 1, function (isSubmitted) {
+                        if (isSubmitted) {
+                            $('#delete-button').hide();
+                        } else {
+                            $('#delete-button').show();
+                            $('#delete-button').off('click').on('click', function () {
+                                var deleteUrl = '{% url "delete_event" 999999 %}'.replace('999999', calEvent.id);
+                                $.ajax({
+                                    type: 'POST',
+                                    url: deleteUrl,
+                                    data: {'csrfmiddlewaretoken': '{{ csrf_token }}'},
+                                    success: function () {
+                                        $('#eventDetailsModal').modal('hide');
+                                        calendar.fullCalendar('removeEvents', calEvent.id);
+                                        alert('Timesheet Deleted Successfully');
+                                    },
+                                    error: function () {
+                                        alert('Error deleting the event.');
+                                    }
+                                });
+                            });
+                        }
+                    });
+                },
+                dayRender: function (date, cell) {
+                    var icon = $('<span class="fa fa-plus add-timesheet-icon"></span>');
+                    $(cell).css('position', 'relative');
+                    icon.css({
+                        position: 'absolute',
+                        bottom: '5px',
+                        right: '5px',
+                        cursor: 'pointer'
+                    });
+                    $(cell).append(icon);
+        
+                    icon.on('click', function () {
+                        var cellYear = date.year();
+                        var cellMonth = date.month() + 1;
+        
+                        checkSubmissionStatus(cellYear, cellMonth, function (isSubmitted) {
+                            if (!isSubmitted) {
+                                $('#selected_date').val(date.format('YYYY-MM-DD'));
+                                $('#modal-date-display').text(date.format('YYYY-MM-DD'));
+                                $('#timesheetModal').modal('show');
+                            } else {
+                                alert("Cannot add timesheets. This month is read-only.");
+                            }
+                        });
+                    });
+                },
+                select: function (start) {
+                    var selectedYear = start.year();
+                    var selectedMonth = start.month() + 1;
+        
+                    checkSubmissionStatus(selectedYear, selectedMonth, function (isSubmitted) {
+                        if (!isSubmitted) {
+                            var formattedDate = moment(start).format('YYYY-MM-DD');
+                            $('#selected_date').val(formattedDate);
+                            $('#modal-date-display').text(formattedDate);
+                            $('#timesheet-form')[0].reset();
+                            $('#timesheetModal').modal('show');
+                        } else {
+                            alert("Cannot add new timesheets.Timesheets already Submitted for this month.");
+                        }
+                    });
+                },
+            
+            viewRender: function (view) {
+                // Clear the status message when changing months
+                hideStatusMessage();
+                var currentDate = $('#calendar').fullCalendar('getDate');
+                var year = currentDate.year();
+                var month = currentDate.month() + 1;
+            
+                $.getJSON('/all_timesheets/', function (data) {
+                    // Filter events to only those in the currently viewed month
+                    var filteredEvents = data.filter(function (event) {
+                        var eventDate = moment(event.start);
+                        return eventDate.year() === year && eventDate.month() + 1 === month;
+                    });
+    
+                    var statusMessage = getStatusMessage(filteredEvents);
+    
+                    // Display status message if there is one
+                    if (statusMessage) {
+                        showStatusMessage(statusMessage);
+                    } else {
+                        hideStatusMessage();
+                    }
+                });
+
+                checkSubmissionStatus(year, month, function (isSubmitted) {
+                    if (isSubmitted) {
+                        disableMonth(year, month);
+                        alert("Timesheets for this month are submitted and you can only view.");
+                    }
+                });
+            }
+        });
+            
+            function getStatusMessage(data) {
+                var hasApproved = data.some(function (event) {
+                    return event.status === 'Approved';
+                });
+
+                var hasRejected = data.some(function (event) {
+                    return event.status === 'Rejected';
+                });
+
+                if (hasApproved) {
+                    return 'Timesheets are Approved for this month';
+                } else if (hasRejected) {
+                    return 'Timesheets are Rejected for this month Re-Submit';
+        } else {
+                    return '';
+                }
+            }
+
+            function showStatusMessage(message) {
+                // Assuming you have a div with id 'statusMessage' to display the message
+                $('#statusMessage').text(message).fadeIn().delay(3000).fadeOut(); // Show for 5 seconds
+            }
+
+            function hideStatusMessage() {
+                $('#statusMessage').fadeOut();
+            }
+            
+            // Handle form submission for adding a timesheet
+            $('#timesheet-form').on('submit', function (e) {
+                e.preventDefault();
+                $.ajax({
+                    type: "POST",
+                    url: '{% url "add_timesheet" %}',
+                    data: $(this).serialize(),
+                    dataType: "json",
+                    success: function (data) {
+                        if (data.success) {
+                            $('#timesheetModal').modal('hide');
+                            calendar.fullCalendar('refetchEvents');
+                            $('#timesheet-form')[0].reset();
+                            alert("Added Successfully");
+                        } else {
+                            alert('Error: ' + data.error);
+                        }
+                    },
+                    error: function () {
+                        alert('There was a problem adding the timesheet. Make sure to fill all fields');
+                    }
+                });
+            });
+            
+            // Check status for the initial load
+            var initialDate = $('#calendar').fullCalendar('getDate');
+            checkSubmissionStatus(initialDate.year(), initialDate.month() + 1, function (isSubmitted) {
+                if (isSubmitted) {
+                    disableMonth(initialDate.year(), initialDate.month() + 1);
+                    alert("Timesheets for this month are submitted, readonly.");
+                }
+            });
+        });
+        
+        
+    </script>
+</body>
+</html>

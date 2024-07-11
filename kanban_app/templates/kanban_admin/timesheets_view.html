@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ user.username }}'s Submitted Timesheets for {{ month }}/{{ year }}</title>
+   
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.css"/>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.js"></script>
+
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid justify-content-center">
+        <span class="navbar-brand mb-0 h1"><strong>{{ user.username }}'s Submitted Timesheets for {{ month }}/{{ year }}</strong></span>
+    </div>
+</nav>
+<div class="container-fluid text-right mt-3 mb-3">
+    <div class="text-left">
+        <div id="statusMessage" class="alert" style="display: none;"></div>
+
+<div class="container mt-3">
+    <div class="d-flex justify-content-end mb-3">
+        <button id="approveTimesheets" class="btn btn-success mr-2">Approve</button>
+        <button id="rejectTimesheets" class="btn btn-danger">Reject</button>
+    </div>
+</div>
+<div class="container-fluid">
+    <div id="calendar"></div>
+</div>
+
+<!-- Event Details Modal -->
+<div class="modal fade" id="eventDetailsModal" tabindex="-1" role="dialog" aria-labelledby="eventDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventDetailsModalLabel">Event Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Title:</strong> <span id="detail-title"></span></p>
+                <p><strong>Project Name:</strong> <span id="detail-project-name"></span></p>
+                <p><strong>Date:</strong> <span id="detail-date"></span></p>
+                <p><strong>Start Time:</strong> <span id="detail-start-time"></span></p>
+                <p><strong>End Time:</strong> <span id="detail-end-time"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rejection Reason Modal -->
+<!-- <div class="modal fade" id="rejectionReasonModal" tabindex="-1" role="dialog" aria-labelledby="rejectionReasonModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectionReasonModalLabel">Rejection Reason</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <textarea id="rejectionReason" class="form-control" rows="3" placeholder="Enter the reason for rejection"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" id="submitRejection" class="btn btn-danger">Submit</button>
+            </div>
+        </div>
+    </div>
+</div> -->
+
+<script>
+    $(document).ready(function () {
+        var calendar = $('#calendar').fullCalendar({
+            header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'month,agendaWeek,agendaDay'
+            },
+            eventSources: [
+                {
+                    url: '{% url "api_timesheets" %}?user_id={{ user.id }}',
+                    method: 'GET',
+                    
+                    failure: function () {
+                        alert('There was an error while fetching timesheets.');
+                    },
+                    success: function (data) {
+                        console.log('Timesheets data:', data);
+                        if (data.length >= 28) {
+                            var firstTimesheet = data[0];
+
+                            if (firstTimesheet.status === 'Approved') {
+                                $('#approveTimesheets').hide();
+                                $('#rejectTimesheets').hide();
+                                showStatusMessage('Timesheets are approved for {{ month }}/{{ year }}.', 'success');
+                            } else if (firstTimesheet.status === 'rejected') {
+                                $('#approveTimesheets').hide();
+                                $('#rejectTimesheets').hide();
+                                showStatusMessage('Timesheets are Rejected for {{ month }}/{{ year }}.', 'success');
+
+                            } else {
+                                $('#approveTimesheets').show();
+                                $('#rejectTimesheets').show();
+                                showStatusMessage('Timesheets are not checked and pending.', 'warning');
+                            }
+                        } else {
+                            showStatusMessage('Check timesheets for the {{ month }}/{{ year }}', 'info');
+                            $('#approveTimesheets').hide();
+                            $('#rejectTimesheets').hide();
+                        }
+                    }
+                }
+            ],
+            eventClick: function (calEvent, jsEvent, view) {
+                // Populate modal with event data
+                $('#detail-title').text(calEvent.title);
+                $('#detail-project-name').text(calEvent.project_name);
+                $('#detail-date').text(moment(calEvent.start).format('YYYY-MM-DD'));
+                console.log(calEvent)
+                $('#detail-start-time').text(calEvent.start_time);
+                $('#detail-end-time').text(calEvent.end_time);
+                // Show the modal
+                $('#eventDetailsModal').modal('show');
+            },
+            selectable: true,
+            selectHelper: true,
+            editable: false
+        });
+        $('#approveTimesheets').click(function () {
+            if (confirm("Are you sure you want to approve all timesheets for this month?")) {
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'approve_timesheets' %}",
+                    data: {
+                        'csrfmiddlewaretoken': '{{ csrf_token }}',
+                        'user_id': '{{ user.id }}',
+                        'month': '{{ month }}',
+                        'year': '{{ year }}'
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        alert(response.message);
+                        if (response.success) {
+                            // Refresh the calendar to reflect the changes
+                            $('#calendar').fullCalendar('refetchEvents');
+                        }
+                    },
+                    error: function () {
+                        alert("An error occurred while approving timesheets.");
+                    }
+                });
+            }
+        });
+
+        $('#rejectTimesheets').click(function () {
+            if (confirm("Are you sure you want to reject all timesheets for this month?")) {
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'reject_timesheets' %}",
+                    data: {
+                        'csrfmiddlewaretoken': '{{ csrf_token }}',
+                        'user_id': '{{ user.id }}',
+                        'month': '{{ month }}',
+                        'year': '{{ year }}'
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        alert(response.message);
+                        if (response.success) {
+                            // Refresh the calendar to reflect the changes
+                            $('#calendar').fullCalendar('refetchEvents');
+                        }
+                    },
+                    error: function () {
+                        alert("An error occurred while rejecting timesheets.");
+                    }
+                });
+            }
+        });
+    });
+
+    function showStatusMessage(message, type) {
+        var statusElement = $('#statusMessage');
+        statusElement.text(message);
+
+        statusElement.removeClass('alert-success alert-warning alert-info alert-danger');
+        if (type === 'success') {
+            statusElement.addClass('alert-success');
+        } else if (type === 'warning') {
+            statusElement.addClass('alert-warning');
+        } else if (type === 'info') {
+            statusElement.addClass('alert-info');
+        } else if (type === 'danger') {
+            statusElement.addClass('alert-danger');
+        }
+
+        statusElement.show();
+    }
+</script>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

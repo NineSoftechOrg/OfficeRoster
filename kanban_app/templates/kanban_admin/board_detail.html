@@ -1,0 +1,140 @@
+{% extends 'kanban_admin/base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        .kanban-board {
+            display: flex;
+            justify-content: space-between;
+        }
+        .kanban-column {
+            width: 23%;
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            min-height: 400px;
+        }
+        .kanban-card {
+            background: rgb(162, 214, 214);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            cursor: move;
+        }
+    </style>
+</head>
+<body>
+<div class="card mt-3">
+    <div class="left-column">
+        <div class="card-header">
+            <h5>Project Name:  <strong>{{ board.Project_name }}</strong> </h5> <!-- Assuming 'Project_name' is actually 'name' -->
+        </div>
+        <div class="card-body">
+            <p class="card-title"><b>Created by: </b>{{ board.created_by.username }}</p>
+            <hr>
+            {% if request.user.role == 'admin' or request.user.is_superuser %}
+            <a href="{% url 'task_create' board.pk %}" class="btn btn-primary">Add New Task</a>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary"><strong>Back to Dashboard</strong></a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<div>
+    <h2 style="text-align:center">Project Tasks:</h2>
+</div>
+            
+<div class="container mt-4">
+    <div class="kanban-board">
+        {% for status in statuses %}
+        <div class="kanban-column" id="{{ status }}">
+            <h3>{{ status|capfirst }}</h3>
+            {% for task in tasks %}
+                {% if task.status == status %}
+                
+                <div class="kanban-card" data-id="{{ task.id }}">
+                    <h4>{{ task.title }}</h4>
+                    <p>{{ task.description }}</p>
+                    <h6>Id: {{ task.order }}</h6>
+                    <h6>{{ task.created_at }}</h6>
+                    <h6>Assigned to: {{task.assigned_to }}</h6>
+                    {% if request.user.role == "admin" or request.user.is_superuser %}
+                        <a href="{% url 'task_update' task.pk %}" class="btn btn-sm btn-secondary">Edit</a>
+                        <a href="{% url 'task_delete' task.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                    {% endif %}
+                </div>
+
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+
+{% if request.user.role == 'admin' or request.user.is_superuser %}
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            let cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function setupAjaxCSRF() {
+        let csrftoken = getCookie('csrftoken');
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!/^http:.*/.test(settings.url) && !/^https:.*/.test(settings.url)) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+    }
+
+    setupAjaxCSRF();
+
+    $(function() {
+        $(".kanban-column").sortable({
+            connectWith: ".kanban-column",
+            update: function(event, ui) {
+                var taskId = ui.item.data('id');
+                var newStatus = ui.item.parent().attr('id');
+                $.ajax({
+                    url: "{% url 'admin_task_status_update'  %}",
+                    method: 'POST',
+                    data: {
+                        'task_id': taskId,
+                        'new_status': newStatus,
+                    },
+                    success: function(response) { 
+                        console.log('Task status updated successfully.');
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error updating task status:', error);
+                    }
+                });
+            }
+        }).disableSelection();
+    });
+</script>
+{% endif %}
+</body>
+</html>
+{% endblock %}
+
+
+
+

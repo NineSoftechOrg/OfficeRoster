@@ -1,0 +1,62 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+   
+    <link rel="stylesheet" href="{% static 'css/userbashboard.css' %}">
+</head>
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+ <link href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" rel="stylesheet">
+   </head>
+   <body>
+     <input type="checkbox" id="check">
+     <label for="check">
+       <i class="fas fa-bars" id="btn"></i>
+       <i class="fas fa-times" id="cancel"></i>
+     </label>
+     <div class="sidebar">
+       <header>Menu</header> 
+       <a href="#" class="active">
+         <i class="fas fa-qrcode"></i>
+         <span>Dashboard</span>
+       </a>
+       <a href="{% url 'project_list' %}">
+         <i class="fas fa-link"></i>
+         <span>Projects</span>
+       </a>
+       <a href="{% url 'timesheet_dashboard' %}">
+         <i class="fas fa-calendar"></i>
+         <span>My Timesheets</span>
+       </a>
+       <a href="#">
+         <i class="fas fa-stream"></i>
+         <span>##Events</span>
+       </a>
+       <a href="#">
+        <i class="far fa-envelope"></i>
+         <span>##Contact</span>
+       </a>
+       <a href="#">
+         <i class="fas fa-sliders-h"></i>
+         <span>##Services</span>
+       </a>
+       <a href="{% url 'logout' %}">
+         <i class="far fa-question-circle"></i>
+         <span>LOGOUT</span>
+       </a>
+     </div>
+ </body>
+     
+   <div class="frame">
+ <p> Welcome to the Dashboard </p>
+ <h2>Nine Softech</h2>
+   <p>...</p>
+ 
+ </div> 
+  
+</html>

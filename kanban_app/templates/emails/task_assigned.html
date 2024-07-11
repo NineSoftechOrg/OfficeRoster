@@ -1,0 +1,18 @@
+<!-- templates/emails/task_assigned_email.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Task Assigned</title>
+</head>
+<body>
+    <h2>Hello {{ user.username }},</h2>
+    <p>You have been assigned a new task in the project: <strong>{{ task.board.Project_name }}</strong>.</p>
+    <p>Task Title: <strong>{{ task.title }}</strong></p>
+    <p>Description: {{ task.description }}</p>
+    <p>Current Status: <strong>{{ task.get_status_display }}</strong></p>
+    <p>Please log in to your account to view and update the task.</p>
+    <p>Best regards,</p>
+    <p>The Team</p>
+</body>
+</html>
