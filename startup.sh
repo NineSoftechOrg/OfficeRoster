@@ -1,12 +1,13 @@
 #!/bin/bash
 
+# Export environment variables
+export DJANGO_SETTINGS_MODULE=Kanban_ui.settings
+
+#install dependencies
 pip install -r requirements.txt
 
-# Apply database migrations
 python manage.py migrate
 
-# Collect static files
 python manage.py collectstatic --noinput
 
-# Start Gunicorn
-gunicorn --workers 2 NameOfProject.wsgi:application
+gunicorn --workers 2 Kanban_ui.wsgi:application
