@@ -1,2 +1,12 @@
 #!/bin/bash
-python manage.py collectstatic --noinput && gunicorn --workers 2 Kanban_ui.wsgi:application
+
+pip install -r requirements.txt
+
+# Apply database migrations
+python manage.py migrate
+
+# Collect static files
+python manage.py collectstatic --noinput
+
+# Start Gunicorn
+gunicorn --workers 2 NameOfProject.wsgi:application
