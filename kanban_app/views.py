@@ -1,12 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import KanbanBoard, Task
 from .forms import TaskUserForm
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.contrib import messages
 from django.urls import reverse
+
+def is_user(user):
+    return user.role in ['client','user']
 
 
 def welcome(request):
@@ -43,7 +46,7 @@ def loginpage(request):
         validate_user = authenticate(username=username, password=password)
         if validate_user is not None:
             login(request, validate_user)
-            if validate_user.is_superuser or validate_user.role in ['client','admin']:
+            if validate_user.is_superuser or validate_user.role in ['admin']:
                 return redirect('dashboard')
             else:
                 return redirect('user_dashboard')
@@ -54,10 +57,12 @@ def loginpage(request):
 
 
 @login_required
+@user_passes_test(is_user)
 def user_dashboard(request):
     return render(request, 'kanban/userdashboard.html' )
 
 @login_required
+@user_passes_test(is_user)
 def project_list(request):
     boards= set()
     projects_list = KanbanBoard.objects.filter(assigned_users = request.user)
