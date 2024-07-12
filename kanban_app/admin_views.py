@@ -10,7 +10,7 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponse
 
 def is_superadmin(user):
-    return user.is_superuser or user.role in ['client','admin']
+    return user.is_superuser or user.role in ['admin']
 
 @login_required
 @user_passes_test(is_superadmin)
@@ -101,7 +101,6 @@ def admin_task_status_update(request):
         print(task.status,"HHHHHHHHHHHHHHHH")
         task.save()
     return JsonResponse({'success': True})
-    # print(board.status, "HGGGGGGGGGGGGGGggg")
 
 
 @login_required
