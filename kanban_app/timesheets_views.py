@@ -112,7 +112,6 @@ def submit_timesheets(request):
         if missing_days:
             return JsonResponse({'success': False, 'message': f'Make sure to fill Missing timesheets for the dates: {", ".join(missing_days)}'})
 
-        #update timesheets to be 'submitted' 
         Timesheets.objects.filter(user=request.user, date__year=current_year, date__month=current_month).update(status ="submitted", submitted=True)   
         print(Timesheets.objects.filter(user=request.user, date__year=current_year, date__month=current_month).update(status ="submitted", submitted=True)  , "JJJJJJJJJJJJJJJJJJ")
         #marking the month as submitted

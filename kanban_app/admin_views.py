@@ -91,18 +91,15 @@ def board_detail(request, pk):
 
 @login_required
 @user_passes_test(is_superadmin)
-@require_POST
 def admin_task_status_update(request):
-    # res= '<h1> i am workin </h1>'
-    # return HttpResponse(res)
+    if request.method == 'POST':
+        task_id = request.POST.get('task_id')
+        new_status = request.POST.get('new_status')
 
-    task_id = request.GET.get('task_id')
-    new_status = request.POST.get('new_status')
-    
-    task = get_object_or_404(Task, id=task_id, assigned_to=request.user)
-    task.status = new_status
-    print(task.status,"HHHHHHHHHHHHHHHH")
-    task.save()
+        task = get_object_or_404(Task, id=task_id)
+        task.status = new_status
+        print(task.status,"HHHHHHHHHHHHHHHH")
+        task.save()
     return JsonResponse({'success': True})
     # print(board.status, "HGGGGGGGGGGGGGGggg")
 
