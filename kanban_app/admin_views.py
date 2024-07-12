@@ -10,20 +10,25 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponse
 
 def is_superadmin(user):
-    return user.is_superuser or user.role in ['admin']
+    return user.is_superuser or user.role in ['client', 'admin']
 
 @login_required
 @user_passes_test(is_superadmin)
 def dashboard(request):
-    boards = KanbanBoard.objects.all()
-    all_projects = []
-    for project in boards:
-        project_name = project.Project_name
-        userids = list(project.assigned_users.values_list('username',flat=True))
-        all_projects.append({project_name:userids})
+    if request.user.role == 'admin' or request.user.is_superuser:
+        boards = KanbanBoard.objects.all()
+        all_projects = []
+        for project in boards:
+            project_name = project.Project_name
+            userids = list(project.assigned_users.values_list('username',flat=True))
+            all_projects.append({project_name:userids})        
+    else:
+        boards= set()
+        all_projects = KanbanBoard.objects.filter(assigned_users = request.user)
+        for projects in all_projects:
+            boards.add(projects)
+
     users = User.objects.all()
-    print(all_projects)
-    
     context = {
         
         'users': users,
@@ -154,7 +159,6 @@ def board_delete(request, pk):
 def users_submitted_timeseets(request, ):
     
     timesheets_submitted = TimesheetSubmission.objects.filter(submitted = True).order_by('created_date')
-    print(timesheets_submitted, "GGGGGG")
     # users_submitted = {}
     
     # for submission in timesheets_submitted:

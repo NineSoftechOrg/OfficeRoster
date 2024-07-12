@@ -12,6 +12,7 @@
 {% endif %}
 
 </div>
+
 <!-- <div class="col-12-xs col-6-m p-7-l p-5-m p-4-xs"></div> -->
 <div class="row">
     {% for board in boards %}
@@ -35,11 +36,13 @@
     </div>
     {% empty %}
     <br>
-    <h4>No Porject Created....</h4>
+    <h4>No Project Created....</h4>
     {% endfor %}
 </div>
 
+{% if request.user.role == 'admin' or request.user.is_superuser %}
 <div class="my-3">
+
 <h2>Users Dashboard</h2>
 {% if request.user.role == 'admin' or request.user.is_superuser %}
 <a href="{% url 'create_user' %}" class="btn btn-primary">Create New User</a><br><br>
@@ -98,6 +101,8 @@
                     </tbody>
                 </table>
         </div>
-
     </div>
+    {% endif %}
+    
+
 {% endblock %}
