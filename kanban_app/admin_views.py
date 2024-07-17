@@ -54,9 +54,6 @@ def create_user(request):
         password = User.objects.make_random_password(length=9, 
                            allowed_chars="abcdefghighlmpxy#@&$ABCDEFGHIJKLMNOPQRSTUVWSXZ1234567890") 
         role = request.POST.get('role')
-        # if len(password) < 6:
-        #     messages.error(request, 'Password must be at least 3 characters')
-        #     return redirect('register')
         get_all_users_by_email = User.objects.filter(email=email)
         get_all_users_by_username = User.objects.filter(username=username)
         if get_all_users_by_username:

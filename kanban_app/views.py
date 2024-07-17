@@ -93,7 +93,7 @@ def kanban_board(request, board_id):
                 assigned_to=request.user,
                 order = new_order  #Task.objects.filter(board=board).order_by('-order').first().order + 1
             )
-            return redirect('kanban_board', args=[board_id])
+            return redirect(reverse('kanban_board', args=[board_id]))
 
     tasks = Task.objects.filter(board=board, assigned_to=request.user)
     statuses = ['todo', 'in_progress', 'testing', 'done']
