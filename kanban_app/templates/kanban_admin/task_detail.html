@@ -8,8 +8,10 @@
         <h5 class="card-title">{{ task.title }}</h5>
         <p class="card-text">{{ task.description }}</p>
         <p>Status: {{ task.get_status_display }}</p>
-        <a href="{% url 'task_update' task.pk %}" class="btn btn-secondary">Edit</a>
-        <a href="{% url 'task_delete' task.pk %}" class="btn btn-danger">Delete</a>
+       <div>
+          <a href="{% url 'task_update' task.pk %}" class="btn btn-secondary">Edit</a>
+          <a href="{% url 'task_delete' task.pk %}" class="btn btn-danger">Delete</a>
+       </div>
     </div>
 </div>
 {% endblock %}

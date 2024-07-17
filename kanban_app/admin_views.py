@@ -5,9 +5,16 @@ from .models import KanbanBoard, Task, Timesheets, TimesheetSubmission
 from django.contrib import messages
 from .forms import KanbanBoardForm, TaskForm
 from .email_utils import send_project_assigned_email, send_newuser_register_email
-from django.db.models import Max
+from django.db.models import Max, F
 from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponse
+from django.core.files.storage import FileSystemStorage
+from django.urls import reverse
+import os, csv
+import pandas as pd
+
+
+
 
 def is_superadmin(user):
     return user.is_superuser or user.role in ['client', 'admin']
@@ -44,7 +51,8 @@ def create_user(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         email = request.POST.get('email')
-        password = request.POST.get('password')
+        password = User.objects.make_random_password(length=9, 
+                           allowed_chars="abcdefghighlmpxy#@&$ABCDEFGHIJKLMNOPQRSTUVWSXZ1234567890") 
         role = request.POST.get('role')
         # if len(password) < 6:
         #     messages.error(request, 'Password must be at least 3 characters')
@@ -79,13 +87,11 @@ def user_delete(request, pk):
     user.delete()
     return redirect('dashboard')   
 
-
 @login_required
 @user_passes_test(is_superadmin)
 def board_detail(request, pk):
     board = get_object_or_404(KanbanBoard, pk=pk)
     tasks = board.tasks.all()
-    print(tasks, ":TTTTTTTTTTTTTTTT")
     statuses = ['todo', 'in_progress', 'testing', 'done']
     context = {
         'board': board,
@@ -103,7 +109,6 @@ def admin_task_status_update(request):
 
         task = get_object_or_404(Task, id=task_id)
         task.status = new_status
-        print(task.status,"HHHHHHHHHHHHHHHH")
         task.save()
     return JsonResponse({'success': True})
 
@@ -136,11 +141,16 @@ def board_update(request, pk):
     if request.method == 'POST':
         form = KanbanBoardForm(request.POST, instance=board)
         if form.is_valid():
-            form.save()
+            
             #email sending
+            current_assigned_users = set(board.assigned_users.all())
+            board = form.save(commit=False)
             assigned_users = form.cleaned_data['assigned_users']
             board.assigned_users.set(assigned_users)
-            send_project_assigned_email(board.Project_name, assigned_users)
+            board.save()
+            new_assigned_users = set(assigned_users)-current_assigned_users
+            if new_assigned_users:           
+                send_project_assigned_email(board.Project_name, new_assigned_users)
             return redirect('dashboard')
     else:
         form = KanbanBoardForm(instance=board)
@@ -164,10 +174,8 @@ def users_submitted_timeseets(request, ):
     # for submission in timesheets_submitted:
     #     if submission.user not in users_submitted:
     #         users_submitted[submission.user] = submission
-
     # users_submitted = list(users_submitted.values())
 
-    
     # timesheet = Timesheets.objects.filter(status= )
     # status = request.GET.get('status') 
     # users = User.objects.all()
@@ -179,6 +187,80 @@ def users_submitted_timeseets(request, ):
 def task_detail(request, pk):
     task = get_object_or_404(Task, pk=pk)
     return render(request, 'kanban_admin/task_detail.html', {'task': task})
+    
+@login_required
+@user_passes_test(is_superadmin)
+def import_tasks_csv(request, board_id):
+    if request.method == "POST":
+        excel_file = request.FILES["excel_file"]
+        fs = FileSystemStorage()
+        filename = fs.save(excel_file.name, excel_file)
+        # uploaded_file_url = fs.url(filename)
+       
+        file_path = fs.path(filename)
+        try:
+            if excel_file.name.endswith('.csv'):
+                worksheet = pd.read_csv(file_path)
+            else:
+                worksheet = pd.read_excel(file_path, engine='openpyxl')
+
+        except Exception as e:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            messages.error(request, f'Invalid file format. Allowed file csv')   #validation
+            return redirect(reverse('board_detail', args=[board_id]))
+        
+        required_columns = ['Title', 'Description', 'Status', 'Assigned To']
+        for column in required_columns:
+            if column not in worksheet.columns:
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                messages.error(request, f'Missing required column/word format: {column}')  #validation
+                return redirect(reverse('board_detail', args=[board_id]))
+        
+        for _,row in worksheet.iterrows():
+            board = KanbanBoard.objects.get(id=board_id)
+            try:
+                assigned_to = board.assigned_users.get(username=row['Assigned To'])
+            except User.DoesNotExist:
+                if os.path.exists(file_path):
+                 os.remove(file_path)
+                messages.error(request, f'Assigned username does not exist in current Project.') #validation
+                return redirect(reverse('board_detail', args=[board_id]))
+            
+            max_order = Task.objects.filter(board=board).aggregate(Max('order'))['order__max']
+            order = 1 if max_order is None else max_order + 1
+            tasks = Task(
+                board=board,
+                title=row['Title'],
+                description=row['Description'],
+                status=row['Status'],
+                assigned_to=assigned_to,
+                order=order
+            )
+            tasks.save()
+
+        # Clean up the file after processing
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+        return redirect(reverse('board_detail', args=[board_id]))
+    return redirect(reverse('board_detail', args=[board_id]))
+
+
+def export_task_csv(request, board_id):
+    board = KanbanBoard.objects.get(id=board_id)
+    response = HttpResponse(content_type = 'text/csv')
+    response['Content-Disposition'] =f'attachment; filename="Project_{board.Project_name}_tasks.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['Order', 'Title', 'Description', 'Status', 'Assigned To'])
+    
+    project_tasks = Task.objects.filter(board=board).values('order', 'title', 'description', 'status', assigned_to_name=F('assigned_to__username'))
+    for task in project_tasks:
+        writer.writerow([task['order'], task['title'], task['description'], task['status'], task['assigned_to_name']])
+    return response
+
 
 @login_required
 @user_passes_test(is_superadmin)

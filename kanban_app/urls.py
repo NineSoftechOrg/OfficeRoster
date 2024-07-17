@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .admin_views import  create_user, user_delete, task_create, task_detail, admin_task_status_update, task_update, task_delete, dashboard, board_detail, board_create, \
-    users_submitted_timeseets, board_update, board_delete
+    users_submitted_timeseets, board_update, board_delete, export_task_csv, import_tasks_csv
 
 from .views import  welcome, loginpage, user_dashboard, project_list, kanban_board, update_task_status, logout_view
 
@@ -35,10 +35,12 @@ urlpatterns = [
     path('create_user/new/', create_user, name='create_user'),
     path('user/<int:pk>/delete/', user_delete, name='user_delete'),
     path('board/<int:pk>/', board_detail, name='board_detail'),
-    path('admin_task_status_update/', admin_task_status_update, name='admin_task_status_update'),
     path('board/<int:pk>/edit/', board_update, name='board_update'),
     path('board/<int:pk>/delete/', board_delete, name='board_delete'),
     path('board/<int:board_id>/task/new/', task_create, name='task_create'),
+    path('task/import_csv/<int:board_id>/', import_tasks_csv, name = "import_tasks_csv"),
+    path('task/export_csv/<int:board_id>/', export_task_csv, name="export_task_csv" ),
+    path('admin_task_status_update/', admin_task_status_update, name='admin_task_status_update'),
     path('task/<int:pk>/', task_detail, name='task_detail'),
     path('task/<int:pk>/edit/', task_update, name='task_update'),
     path('task/<int:pk>/delete/',   task_delete, name='task_delete'),

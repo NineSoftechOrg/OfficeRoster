@@ -24,6 +24,11 @@
             border-radius: 5px;
             cursor: move;
         }
+
+        .import-button{
+            border: 1px solid black; 
+            padding: 5px;
+        }
     </style>
 </head>
 <body>
@@ -43,9 +48,28 @@
     </div>
 </div>
 <div>
+    {% if messages %}
+      {% for message in messages %}
+        <div>
+            <strong style="color: #b22222;">{{message}}</strong>
+        </div>
+      {% endfor %}
+
+    {% endif %}
+      
+</div>
+<div>
     <h2 style="text-align:center">Project Tasks:</h2>
 </div>
-            
+<div>
+    <a href="{% url 'export_task_csv' board.pk %}"  class="btn btn-outline-primary">Download Tasks</a>
+    <form method="POST" action="{% url 'import_tasks_csv' board.id %}" enctype="multipart/form-data">
+         {% csrf_token %}
+        <p><input type="file" name="excel_file" class="import-button">
+        <input type="submit" name="submit" value="Import Tasks"></p>
+        <hr>
+    </form>
+</div>         
 <div class="container mt-4">
     <div class="kanban-board">
         {% for status in statuses %}
