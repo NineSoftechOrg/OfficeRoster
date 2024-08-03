@@ -22,9 +22,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-a@7_(i+v^-%dtj!kc*-)e+%b*688rwm9)yop$!0!%_l+_d=#(v'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ["15.207.99.220"]
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -54,7 +54,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'Kanban_ui.urls'
 LOGIN_REDIRECT_URL = 'kanban/'
-CSRF_TRUSTED_ORIGINS=['http://127.0.0.1:8000/']
+CSRF_TRUSTED_ORIGINS=['*']
 
 TEMPLATES = [
     {
