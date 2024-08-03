@@ -1,12 +1,31 @@
 version: 1.0
-runtime: python3
+runtime: python311
 build:
   commands:
-    build:
-      - pip install -r requirements.txt
+    - python3.11 -m ensurepip --upgrade # Upgrade pip (optional)
+    - pip3 install Django # Install Django and dependencies
+    - pip3 install -r requirements.txt
+    - python3 manage.py migrate --noinput
+    - python3 manage.py collectstatic --noinput
+  env:
+    - name: DEBUG
+      value: "on"
+    - name: SECRET_KEY
+      value: 'django-insecure-r(vctop4h_)2ciq#!38tr(bsr^qoyr%t$7*buweve1ikl=&1%0'
+    - name: ALLOWED_HOSTS
+      value: "*"
 run:
-  runtime-version: 3.8.16
-  command: sh startup.sh
-  network:
-    port: 8000
-
+  runtime-version: 3.11
+  command: pip3 install gunicorn config.wsgi # Install gunicorn at runtime
+  pre-run: [] # Remove pre-run section
+  command: gunicorn config.wsgi --log-file -
+  network: 
+    port: 8080
+    env: 8080  
+  env:
+    - name: DEBUG
+      value: "on"
+    - name: SECRET_KEY
+      value: 'django-insecure-r(vctop4h_)2ciq#!38tr(bsr^qoyr%t$7*buweve1ikl=&1%0'
+    - name: ALLOWED_HOSTS
+      value: "*"
