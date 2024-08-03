@@ -8,11 +8,11 @@ build:
    - python3 manage.py migrate --noinput
    - python3 manage.py collectstatic --noinput
   env:
-      name: DEBUG
+    - name: DEBUG
       value: "on"
-      name: SECRET_KEY
+    - name: SECRET_KEY
       value: 'django-insecure-a@7_(i+v^-%dtj!kc*-)e+%b*688rwm9)yop$!0!%_l+_d=#(v'
-      name: ALLOWED_HOSTS
+    - name: ALLOWED_HOSTS
       value: "*"
 run:
   runtime-version: 3.11
@@ -23,9 +23,9 @@ run:
     port: 8080
     env: 8080  
   env:
-      name: DEBUG
+    - name: DEBUG
       value: "on"
-      name: SECRET_KEY
+    - name: SECRET_KEY
       value: 'django-insecure-a@7_(i+v^-%dtj!kc*-)e+%b*688rwm9)yop$!0!%_l+_d=#(v'
-      name: ALLOWED_HOSTS
+    - name: ALLOWED_HOSTS
       value: "*"
