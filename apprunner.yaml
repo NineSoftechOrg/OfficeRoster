@@ -11,14 +11,14 @@ build:
     - name: DEBUG
       value: "on"
     - name: SECRET_KEY
-      value: 'django-insecure-r(vctop4h_)2ciq#!38tr(bsr^qoyr%t$7*buweve1ikl=&1%0'
+      value: 'django-insecure-a@7_(i+v^-%dtj!kc*-)e+%b*688rwm9)yop$!0!%_l+_d=#(v'
     - name: ALLOWED_HOSTS
       value: "*"
 run:
   runtime-version: 3.11
-  command: pip3 install gunicorn config.wsgi # Install gunicorn at runtime
+  command: pip3 install gunicorn Kanban_ui.wsgi # Install gunicorn at runtime
   pre-run: [] # Remove pre-run section
-  command: gunicorn config.wsgi --log-file -
+  command: gunicorn Kanban_ui.wsgi --log-file -
   network: 
     port: 8080
     env: 8080  
