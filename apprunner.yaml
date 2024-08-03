@@ -26,6 +26,6 @@ run:
     - name: DEBUG
       value: "on"
     - name: SECRET_KEY
-      value: 'django-insecure-r(vctop4h_)2ciq#!38tr(bsr^qoyr%t$7*buweve1ikl=&1%0'
+      value: 'django-insecure-a@7_(i+v^-%dtj!kc*-)e+%b*688rwm9)yop$!0!%_l+_d=#(v'
     - name: ALLOWED_HOSTS
       value: "*"
