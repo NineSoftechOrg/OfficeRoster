@@ -2,11 +2,11 @@ version: 1.0
 runtime: python311
 build:
   commands:
-    - python3.11 -m ensurepip --upgrade # Upgrade pip (optional)
-    - pip3 install Django # Install Django and dependencies
-    - pip3 install -r requirements.txt
-    - python3 manage.py migrate --noinput
-    - python3 manage.py collectstatic --noinput
+    python3.11 -m ensurepip --upgrade # Upgrade pip (optional)
+    pip3 install Django # Install Django and dependencies
+    pip3 install -r requirements.txt
+    python3 manage.py migrate --noinput
+    python3 manage.py collectstatic --noinput
   env:
     - name: DEBUG
       value: "on"
