@@ -1,7 +1,9 @@
 version: 1.0
-runtime: python311
+runtime: python3
 build:
   commands:
+   - pip install pipenv
+   - pipenv install
    - python -m ensurepip --upgrade # Upgrade pip (optional)
    - pip install Django # Install Django and dependencies
    - pip install -r requirements.txt
