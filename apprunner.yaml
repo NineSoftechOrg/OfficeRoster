@@ -7,8 +7,8 @@ build:
       - pip3 install Django # Install Django and dependencies
       - pip3 install -r requirements.txt
     post-build:
-      - python manage.py migrate
-      - python manage.py collectstatic
+      - python3 manage.py migrate --noinput
+      - python3 manage.py collectstatic --noinput
   env:
     - name: DEBUG
       value: "on"
