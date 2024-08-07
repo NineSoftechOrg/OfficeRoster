@@ -23,7 +23,7 @@ run:
   pre-run:  
     - pip3 install pipenv
     - pipenv install gunicorn Kanban_ui.wsgi
-  command: gunicorn Kanban_ui.wsgi:application --log-file -
+  command: gunicorn Kanban_ui.wsgi --log-file -
   network:
     port: 8080
     env: 8080
