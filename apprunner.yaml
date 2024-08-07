@@ -1,14 +1,15 @@
 version: 1.0
-runtime: python3
+runtime: python311
 build:
   commands:
-   - pip install pipenv
-   - pipenv install
-   - python -m ensurepip --upgrade # Upgrade pip (optional)
-   - pip install Django # Install Django and dependencies
-   - pip install -r requirements.txt
-   - python manage.py migrate --noinput
-   - python manage.py collectstatic --noinput
+    build:
+      - python3.11 -m ensurepip --upgrade # Upgrade pip (optional)
+      - pip3 install Django # Install Django and dependencies
+      - pip3 install -r requirements.txt
+    post-build:
+      - python manage.py makemigrations
+      - python manage.py migrate
+      - python manage.py collectstatic
   env:
     - name: DEBUG
       value: "on"
@@ -18,9 +19,9 @@ build:
       value: "*"
 run:
   runtime-version: 3.11
-  command: pip3 install gunicorn Kanban_ui.wsgi # Install gunicorn at runtime
+  command: pip3 install gunicorn config.wsgi # Install gunicorn at runtime
   pre-run: [] # Remove pre-run section
-  command: gunicorn Kanban_ui.wsgi --log-file -
+  command: gunicorn config.wsgi --log-file -
   network: 
     port: 8080
     env: 8080  
@@ -31,3 +32,4 @@ run:
       value: 'django-insecure-a@7_(i+v^-%dtj!kc*-)e+%b*688rwm9)yop$!0!%_l+_d=#(v'
     - name: ALLOWED_HOSTS
       value: "*"
+    
