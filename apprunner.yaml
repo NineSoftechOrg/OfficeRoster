@@ -18,9 +18,8 @@ build:
       value: "*"
 run:
   runtime-version: 3.11
-  command: []
-  pre-run:
-    - pip3 install gunicorn
+  command: pip3 install gunicorn
+  pre-run: []
   command: gunicorn Kanban_ui.wsgi:application --bind 0.0.0.0:8080 --log-file -
   network:
     port: 8080 
