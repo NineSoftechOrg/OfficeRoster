@@ -6,8 +6,6 @@ build:
       - python3.11 -m ensurepip --upgrade # Upgrade pip (optional)
       - pip3 install Django # Install Django and dependencies
       - pip3 install -r requirements.txt
-      - pip3 install gunicorn
-      - gunicorn --version
     post-build:
       - python3 manage.py migrate --noinput
       - python3 manage.py collectstatic --noinput
