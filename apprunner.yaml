@@ -6,7 +6,6 @@ build:
       - python3.11 -m ensurepip --upgrade # Upgrade pip (optional)
       - pip3 install Django # Install Django and dependencies
       - pip3 install -r requirements.txt
-    post-build:
       - python manage.py makemigrations
       - python manage.py migrate
       - python manage.py collectstatic
