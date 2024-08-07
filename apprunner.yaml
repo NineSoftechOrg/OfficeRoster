@@ -21,10 +21,9 @@ run:
   command: []
   pre-run:
     - pip3 install gunicorn
-  command: gunicorn Kanban_ui.wsgi:application --log-file -
-  network: 
-    port: 8080
-    env: 8080  
+  command: gunicorn Kanban_ui.wsgi:application --bind 0.0.0.0:8080 --log-file -
+  network:
+    port: 8080 
   env:
     - name: DEBUG
       value: "on"
