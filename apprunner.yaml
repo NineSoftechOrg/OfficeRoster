@@ -31,8 +31,6 @@ run:
       value: 'django-insecure-a@7_(i+v^-%dtj!kc*-)e+%b*688rwm9)yop$!0!%_l+_d=#(v'
     - name: ALLOWED_HOSTS
       value: "*"
-    - name: DATABASE_NAME
-      value: "teamtrakr"
     - name:  DATABASE_USER
       value: "postgres"
     - name: DATABASE_PASSWORD
