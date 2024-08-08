@@ -133,7 +133,8 @@ def update_task_status(request):
     # }
     # return render(request, 'kanban/user_task_form.html', context) 
         
-
+@csrf_exempt
+@login_required
 def logout_view(request):
     logout(request)
     return redirect('login')
