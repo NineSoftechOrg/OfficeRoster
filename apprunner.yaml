@@ -32,7 +32,7 @@ run:
     - name: ALLOWED_HOSTS
       value: "*"
     - name: DATABASE_NAME
-      value: 'teamtrakr'
+      value: "teamtrakr"
     - name:  DATABASE_USER
       value: "postgres"
     - name: DATABASE_PASSWORD
