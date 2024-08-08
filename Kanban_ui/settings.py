@@ -86,15 +86,16 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap4"
 #PROJECT_DIR = os.path.abspath(os.path(os.path.dirname(__file__)))
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DATABASE_NAME', 'postgres'),
-        'USER': os.getenv('DATABASE_USER', 'postgres'),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'AeIoU1239'),
-        'HOST': os.getenv('DATABASE_HOST', 'teamtrakr-2.cpwy0kssc35o.ap-south-1.rds.amazonaws.com'),
-        'PORT': os.getenv('DATABASE_PORT', '5432'),
+        'ENGINE': 'django.db.backends.sqlite3', #postgresql
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
+ # 'ENGINE': 'django.db.backends.postgresql',
+ #        'NAME': os.getenv('DATABASE_NAME', 'postgres'),
+ #        'USER': os.getenv('DATABASE_USER', 'postgres'),
+ #        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'AeIoU1239'),
+ #        'HOST': os.getenv('DATABASE_HOST', 'teamtrakr-2.cpwy0kssc35o.ap-south-1.rds.amazonaws.com'),
+ #        'PORT': os.getenv('DATABASE_PORT', '5432'),
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
