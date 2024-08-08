@@ -90,7 +90,7 @@ DATABASES = {
         'NAME': os.getenv('DATABASE_NAME', 'teamtrakrdb'),
         'USER': os.getenv('DATABASE_USER', 'postgres'),
         'PASSWORD': os.getenv('DATABASE_PASSWORD', 'AeIoU1239'),
-        'HOST': os.getenv('DATABASE_HOST', 'teamtrakr-1.cpwy0kssc35o.ap-south-1.rds.amazonaws.com'),
+        'HOST': os.getenv('DATABASE_HOST', 'teamtrakr-1.clo84oiw8f65.ap-southeast-2.rds.amazonaws.com'),
         'PORT': os.getenv('DATABASE_PORT', '5432'),
     }
 }
