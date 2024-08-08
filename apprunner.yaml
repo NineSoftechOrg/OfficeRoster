@@ -32,13 +32,13 @@ run:
     - name: ALLOWED_HOSTS
       value: "*"
     - name: DATABASE_NAME
-      value: "postgres"
+      value: "teamtrakrdb"
     - name:  DATABASE_USER
       value: "postgres"
     - name: DATABASE_PASSWORD
       value: "AeIoU1239"
     - name: DATABASE_HOST
-      value: "teamtrakr-2.cpwy0kssc35o.ap-south-1.rds.amazonaws.com"
+      value: "teamtrakr-1.cpwy0kssc35o.ap-south-1.rds.amazonaws.com"
     - name: DATABASE_PORT
       value: "5432"
     
