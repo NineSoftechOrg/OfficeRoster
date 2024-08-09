@@ -8,6 +8,8 @@ from .email_utils import send_project_assigned_email, send_newuser_register_emai
 from django.db.models import Max
 from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+
 
 def is_superadmin(user):
     return user.is_superuser or user.role in ['client','admin']
@@ -32,7 +34,7 @@ def dashboard(request):
     }
     return render(request, 'kanban_admin/dashboard.html', context)
 
-
+@csrf_exempt
 @login_required  
 @user_passes_test(is_superadmin)  
 def create_user(request):
@@ -89,6 +91,7 @@ def board_detail(request, pk):
     }
     return render(request, 'kanban_admin/board_detail.html', context)
 
+@csrf_exempt
 @login_required
 @user_passes_test(is_superadmin)
 def admin_task_status_update(request):
@@ -103,7 +106,7 @@ def admin_task_status_update(request):
     return JsonResponse({'success': True})
     # print(board.status, "HGGGGGGGGGGGGGGggg")
 
-
+@csrf_exempt
 @login_required
 @user_passes_test(is_superadmin)
 def board_create(request):
@@ -124,7 +127,7 @@ def board_create(request):
         form = KanbanBoardForm()
     return render(request, 'kanban_admin/board_form.html', {'form': form})
   
-
+@csrf_exempt
 @login_required
 @user_passes_test(is_superadmin)
 def board_update(request, pk):   
@@ -198,7 +201,7 @@ def task_create(request, board_id):
     form.fields['assigned_to'].queryset = board.assigned_users.all()
     return render(request, 'kanban_admin/task_form.html', {'form': form, 'board': board})
 
-
+@csrf_exempt
 @login_required
 @user_passes_test(is_superadmin)
 def task_update(request, pk):
