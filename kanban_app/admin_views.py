@@ -68,7 +68,7 @@ def create_user(request):
     
     return render(request, 'kanban_admin/register_form.html', {})
 
-
+@csrf_exempt
 @login_required
 @user_passes_test(is_superadmin)
 def user_delete(request, pk):
@@ -101,10 +101,8 @@ def admin_task_status_update(request):
 
         task = get_object_or_404(Task, id=task_id)
         task.status = new_status
-        print(task.status,"HHHHHHHHHHHHHHHH")
         task.save()
     return JsonResponse({'success': True})
-    # print(board.status, "HGGGGGGGGGGGGGGggg")
 
 @csrf_exempt
 @login_required
@@ -145,7 +143,7 @@ def board_update(request, pk):
         form = KanbanBoardForm(instance=board)
     return render(request, 'kanban_admin/board_form.html', {'form': form})
 
-
+@csrf_exempt
 @login_required
 @user_passes_test(is_superadmin)
 def board_delete(request, pk):
@@ -158,7 +156,6 @@ def board_delete(request, pk):
 def users_submitted_timeseets(request, ):
     
     timesheets_submitted = TimesheetSubmission.objects.filter(submitted = True).order_by('created_date')
-    print(timesheets_submitted, "GGGGGG")
     # users_submitted = {}
     
     # for submission in timesheets_submitted:
@@ -180,6 +177,7 @@ def task_detail(request, pk):
     task = get_object_or_404(Task, pk=pk)
     return render(request, 'kanban_admin/task_detail.html', {'task': task})
 
+@csrf_exempt
 @login_required
 @user_passes_test(is_superadmin)
 def task_create(request, board_id):
@@ -216,7 +214,7 @@ def task_update(request, pk):
     form.fields['assigned_to'].queryset = task.board.assigned_users.all()
     return render(request, 'kanban_admin/task_form.html', {'form': form, 'task': task})
 
-
+@csrf_exempt
 @login_required
 @user_passes_test(is_superadmin)
 def task_delete(request, pk):
