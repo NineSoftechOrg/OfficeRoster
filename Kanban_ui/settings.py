@@ -139,9 +139,9 @@ STORAGES = {
     },
 }
 
-# STATICFILEDS_DIRS = [
-#     os.path.join(BASE_DIR, "static")
-# ]
+STATICFILEDS_DIRS = [
+    os.path.join(BASE_DIR, "static")
+]
 
 
 
